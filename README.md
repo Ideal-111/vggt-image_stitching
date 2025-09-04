@@ -1,14 +1,15 @@
 # VGGT-Image_stitching
 Repository for running the VGGT model to do image stitching task
 ![example](https://raw.githubusercontent.com/Ideal-111/vggt-image_stitching/main/stitched_processed_results/hill.jpg)
-
+![example](https://raw.githubusercontent.com/Ideal-111/vggt-image_stitching/main/vggt_track_vis/tracks_grid.png)
+![example](https://raw.githubusercontent.com/Ideal-111/vggt-image_stitching/main/vggt_track_vis/frames_00_01_tracks.png)
 ## TODO
  - Add procession of the seaming
  - Add end-to-end image stitching method
  - Adapt vggt to mutimodal image stitching task
 ## Installation
 
-### Option1: pip installation
+### pip installation
 Same dependencies as VGGT([VGGT](https://github.com/facebookresearch/vggt)) installation
 
 ### Start
