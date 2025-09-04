@@ -1,6 +1,6 @@
 # VGGT-Image_stitching
 Repository for running the VGGT model to do image stitching task
-![example](https://github.com/Ideal-111/vggt-image_stitching/tree/main/stitched_processed_results/hill.jpg)
+![example](https://raw.githubusercontent.com/Ideal-111/vggt-image_stitching/main/stitched_processed_results/hill.jpg)
 
 ## TODO
  - Add procession of the seaming
