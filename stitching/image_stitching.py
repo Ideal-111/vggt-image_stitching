@@ -5,7 +5,7 @@ from vggt.models.vggt import VGGT
 from vggt.utils.load_fn import load_and_preprocess_images
 from vggt.utils.visual_track import visualize_tracks_on_images
 from vggt.utils.keypoint import transform_keypoints
-from vggt.utils.stitching import single_weights_matrix
+from vggt.utils.stitching import stitch_images
 import cv2
 os.environ["CUDA_VISIBLE_DEVICES"] = "1,2,3" 
 
@@ -96,68 +96,8 @@ with torch.no_grad():
         src_pts = query_points.cpu().numpy()[integral_mask.cpu().numpy()]
         tracked_pts = tracks.cpu().numpy()[:, integral_mask.cpu().numpy()]
 
-        middle_index = len(full_path_image_names) // 2
-        ref_points = tracked_pts[middle_index]
-        ref_h, ref_w = processed_images_for_cv2[middle_index].shape[:2]
-        # ref_points = tracked_pts[0]
-        # ref_h, ref_w = processed_images_for_cv2[0].shape[:2]
+        stitched_image = stitch_images(full_path_image_names, tracked_pts, processed_images_for_cv2)
 
-        H_list = []
-        for i in range(len(full_path_image_names)):
-            current_points = tracked_pts[i]
-            H, num = cv2.findHomography(current_points, ref_points, cv2.RANSAC, ransacReprojThreshold=1.0)
-            H_list.append(H)
-
-        print(f"✅match points: {np.sum(num)}")
-
-        min_x, min_y = 0, 0
-        max_x, max_y = ref_w, ref_h
-
-        for i, H in enumerate(H_list):
-            h, w = processed_images_for_cv2[i].shape[:2]
-            corners = np.float32([[0, 0], [w, 0], [w, h], [0, h]]).reshape(-1, 1, 2)
-            transformed_corners = cv2.perspectiveTransform(corners, H)
-            
-            min_x = int(min(min_x, transformed_corners[:, :, 0].min()) - 1)
-            min_y = int(min(min_y, transformed_corners[:, :, 1].min()) - 1)
-            max_x = int(max(max_x, transformed_corners[:, :, 0].max()) + 1)
-            max_y = int(max(max_y, transformed_corners[:, :, 1].max()) + 1)
-
-        new_width = max_x - min_x
-        new_height = max_y - min_y
-        offset_x = -min_x
-        offset_y = -min_y
-        
-        stitched_image = np.zeros((new_height, new_width, 3), dtype=np.float32)
-        weight_sum = np.zeros((new_height, new_width), dtype=np.float32)
-
-        H_base = H_list[middle_index]
-        T_base = np.array([[1, 0, offset_x], [0, 1, offset_y], [0, 0, 1]], dtype=np.float32)
-        Homo_base_final = T_base @ H_base
-
-        for i in range(len(full_path_image_names)):
-            img = processed_images_for_cv2[i].astype(np.float32)
-            H = H_list[i]
-            
-            h, w = img.shape[:2]
-            img_weights = single_weights_matrix((h, w))
-            
-            img_weights_3ch = np.repeat(
-                cv2.warpPerspective(img_weights, T_base @ H, (new_width, new_height))[:, :, np.newaxis],
-                3,
-                axis=2
-            )
-            
-            warped_img = cv2.warpPerspective(img, T_base @ H, (new_width, new_height))
-            
-            stitched_image += warped_img * img_weights_3ch
-            weight_sum += img_weights_3ch[:, :, 0]
-
-        weight_sum[weight_sum == 0] = 1e-8 
-        stitched_image = stitched_image / weight_sum[:, :, np.newaxis]
-
-        stitched_image = np.clip(stitched_image, 0, 255).astype(np.uint8)
-        
         cv2.imwrite(output, stitched_image)
         print(f"Stitched image saved to {output}")
 

@@ -1,17 +1,17 @@
 # VGGT-Image_stitching
 Repository for running the VGGT model to do image stitching task
-![example](https://raw.githubusercontent.com/Ideal-111/vggt-image_stitching/main/stitched_processed_results/hill.jpg)
+![example](https://raw.githubusercontent.com/Ideal-111/vggt-image_stitching/main/assets/hill.png)
 ![example](https://raw.githubusercontent.com/Ideal-111/vggt-image_stitching/main/vggt_track_vis/tracks_grid.png)
 ![example](https://raw.githubusercontent.com/Ideal-111/vggt-image_stitching/main/vggt_track_vis/frames_00_01_tracks.png)
 ## TODO
- - Add procession of the seaming ✅
- - Add end-to-end image stitching method
+ - Add simple blending or multi-band blending ✅
+ - Add end-to-end image stitching method 
  - Adapt vggt to mutimodal image stitching task
 ## Installation
 
 ### pip installation
-Same dependencies as VGGT([VGGT](https://github.com/facebookresearch/vggt)) installation.
-
+Same dependencies as [VGGT](https://github.com/facebookresearch/vggt) installation.
+You can download the model weights [here](https://huggingface.co/facebook/VGGT-1B/blob/main/model.pt).
 ### Start
 First, use [ALIKED](https://github.com/Shiaoming/ALIKED) to get the key points and save as .pt files, and then you can use the examples as follows:
 ```bash
