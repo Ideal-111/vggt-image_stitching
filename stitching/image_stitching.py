@@ -5,7 +5,8 @@ from vggt.models.vggt import VGGT
 from vggt.utils.load_fn import load_and_preprocess_images
 from vggt.utils.visual_track import visualize_tracks_on_images
 from vggt.utils.keypoint import transform_keypoints
-from vggt.utils.stitching import stitch_images
+from vggt.utils.simple_blending import stitch_images
+# from vggt.utils.multiband_blending import stitch_images
 import cv2
 os.environ["CUDA_VISIBLE_DEVICES"] = "1,2,3" 
 

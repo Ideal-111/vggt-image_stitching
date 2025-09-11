@@ -1,5 +1,8 @@
 import numpy as np
 import cv2
+from vggt.utils.metrics import get_overlapping_regions, calculate_mse, calculate_psnr
+from sklearn.metrics.cluster import mutual_info_score
+from scipy.stats import entropy
 def stitch_images(full_path_image_names, tracked_pts, processed_images_for_cv2):
     """
     Args:
@@ -12,6 +15,7 @@ def stitch_images(full_path_image_names, tracked_pts, processed_images_for_cv2):
     """
 
     middle_index = len(full_path_image_names) // 2
+    ref_image = processed_images_for_cv2[middle_index]
     ref_points = tracked_pts[middle_index]
     ref_h, ref_w = processed_images_for_cv2[middle_index].shape[:2]
     # ref_points = tracked_pts[0]
@@ -24,6 +28,43 @@ def stitch_images(full_path_image_names, tracked_pts, processed_images_for_cv2):
         H_list.append(H)
 
     print(f"✅match points: {np.sum(num)}")
+
+    mi_values = []
+    for i in range(len(full_path_image_names)):
+        if i == middle_index: 
+            # mi_values.append(1.0)
+            continue
+            
+        ref_pixels, img_pixels, _ = get_overlapping_regions(
+            ref_image, 
+            processed_images_for_cv2[i], 
+            H_list[i]
+        )
+        
+        if len(img_pixels) < 2 or len(ref_pixels) < 2:
+            mi_values.append(0.0)
+            continue
+        
+        mi = mutual_info_score(img_pixels, ref_pixels)
+        mi_values.append(mi)
+        print(f"互信息 (图像 {i} 与参考图像 {middle_index}): {mi:.4f}")
+
+        hist1, _ = np.histogram(img_pixels, bins=256, range=(0, np.max(img_pixels)), density=True)
+        hist2, _ = np.histogram(ref_pixels, bins=256, range=(0, np.max(ref_pixels)), density=True)
+        
+        # Compute entropy
+        ent1 = entropy(hist1, base=2)
+        ent2 = entropy(hist2, base=2)
+
+        CE = ent1 + ent2 - mi
+        print(f"联合熵: {CE:.4f}")
+
+        # calculate mse and psnr
+        mse = calculate_mse(img_pixels, ref_pixels)
+        psnr = calculate_psnr(img_pixels, ref_pixels)
+
+        print(f"MSE: {mse:.4f}")
+        print(f"PSNR: {psnr:.4f} dB")
 
     min_x, min_y = 0, 0
     max_x, max_y = ref_w, ref_h
